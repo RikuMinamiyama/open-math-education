@@ -25,7 +25,7 @@ jobs:
           files: contents/**/*.tex
 
       - name: Build Docker image
-        run: docker build -t math-lualatex -f docker/Dockerfile .
+        run: docker build -t lualatex -f docker/Dockerfile .
 
       - name: Compile TeX files
         if: steps.changed-files.outputs.any_changed == 'true'
@@ -37,12 +37,18 @@ jobs:
             
             docker run --rm \
               -v $(pwd):/workdir \
-              math-lualatex \
-              --output-directory=/tmp \
+              -v $(pwd)/artifacts:/output \
+              lualatex \
+              --output-directory=/output \
               --jobname="output_pdf" \
               "$file"
             
-            mv "/tmp/output_pdf.pdf" "artifacts/$pdf_name" || echo "Failed to compile $file"
+            if [ -f "artifacts/output_pdf.pdf" ]; then
+              mv "artifacts/output_pdf.pdf" "artifacts/$pdf_name"
+              echo "Successfully generated $pdf_name"
+            else
+              echo "Failed to compile $file"
+            fi
           done
 
       - name: Upload Artifacts
