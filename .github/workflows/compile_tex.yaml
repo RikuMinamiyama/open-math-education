@@ -1,0 +1,54 @@
+name: Compile Changed TeX Files
+
+on:
+  push:
+    paths:
+      - 'contents/**/*.tex'
+  pull_request:
+    paths:
+      - 'contents/**/*.tex'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v42
+        with:
+          files: contents/**/*.tex
+
+      - name: Build Docker image
+        run: docker build -t math-lualatex -f docker/Dockerfile .
+
+      - name: Compile TeX files
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          mkdir -p artifacts
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo "Compiling $file..."
+            pdf_name=$(basename "${file%.tex}.pdf")
+            
+            docker run --rm \
+              -v $(pwd):/workdir \
+              math-lualatex \
+              --output-directory=/tmp \
+              --jobname="output_pdf" \
+              "$file"
+            
+            mv "/tmp/output_pdf.pdf" "artifacts/$pdf_name" || echo "Failed to compile $file"
+          done
+
+      - name: Upload Artifacts
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-pdfs
+          path: artifacts/*.pdf
+          retention-days: 7
