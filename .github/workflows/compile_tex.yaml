@@ -2,6 +2,8 @@ name: Compile Changed TeX Files
 
 on:
   push:
+    branches:
+      - main
     paths:
       - 'contents/**/*.tex'
   pull_request:
@@ -24,8 +26,18 @@ jobs:
         with:
           files: contents/**/*.tex
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build Docker image
-        run: docker build -t lualatex -f docker/Dockerfile .
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          tags: lualatex:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          load: true
 
       - name: Compile TeX files
         if: steps.changed-files.outputs.any_changed == 'true'
@@ -38,7 +50,7 @@ jobs:
             docker run --rm \
               -v $(pwd):/workdir \
               -v $(pwd)/artifacts:/output \
-              lualatex \
+              lualatex:latest \
               --output-directory=/output \
               --jobname="output_pdf" \
               "$file"
