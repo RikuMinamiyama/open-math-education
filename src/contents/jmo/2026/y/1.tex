@@ -1,8 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Metadata
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% id: jmo2026y1
-% title: 2026年 第36回 日本数学オリンピック 予選問題 第1問
+% id: jmo-2026-y-1
+% title: 2026年 JMO 予選 第1問
 % tags: [整数]
 % difficulty: 2
 % source: https://www.imojp.org/archive/mo2026/jmo/problems/jmo36yqa.pdf
@@ -16,6 +16,7 @@
 \usepackage{luatexja}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{common,ascolorbox}
+\usepackage{url}
 \usepackage[ceo]{emath}
 
 % 行間や文字間隔の調整
@@ -30,11 +31,14 @@
   \belowdisplayshortskip=0.5\belowdisplayshortskip
 }
 
+% 数式の改ページを許可
+\allowdisplaybreaks
+
 % ヘッダー
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 \renewcommand{\headrulewidth}{0pt}
-\lhead{\textbf{2026年 第36回 日本数学オリンピック 予選問題 第1問}}
+\lhead{\textbf{2026年 JMO 予選 第1問\footnote[1]}}
 \rhead{\repeatstars{2}}
 \cfoot{}
 
@@ -43,8 +47,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
 
+\footnotetext[1]{Copyright \textcopyright\space 2024 by Mathematical Olympiad Foundation of Japan.  \\ 著作権は数学オリンピック財団に帰属します．また，問題は以下から引用しています．\\ \url{https://www.imojp.org/archive/mo2026/jmo/problems/jmo36yqa.pdf}}
+
 \begin{problembox}{問題}
   $a^{20}+b^{2}+c^{6}=2026$ をみたす正の整数の組 $(a, b, c)$ をすべて求めよ．
+
+  \syutten{数学オリンピック予選}
 \end{problembox}
 
 \noindent
