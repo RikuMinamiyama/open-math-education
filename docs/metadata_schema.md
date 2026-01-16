@@ -18,6 +18,10 @@ TeXファイルの先頭にコメントアウトされた**YAML Front Matter**�
 
 ## IDの命名規則
 
+ファイルのパス（`src/contents` 以下）をハイフンで結合する．
+
+`src/contents/jmo/2026/y/1.tex` → `jmo-2026-y-1`
+
 ## タイトル
 
 ## タグ
