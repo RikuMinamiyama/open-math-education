@@ -1,0 +1,92 @@
+% https://github.com/yasunari/ascolorbox/blob/master/ascolorbox.sty
+% 上記から一部抜粋
+
+\ProvidesPackage{ascolorbox}[2019/4/30, Version 1.0.3]
+\RequirePackage{tikz,tcolorbox,varwidth}
+
+\usetikzlibrary{calc}
+\tcbuselibrary{xparse,hooks,skins,breakable}
+
+\DeclareTColorBox{problembox}{ o m O{2} O{}}%
+{enhanced, colback=white, colframe=white,
+attach boxed title to top left={xshift=5mm,yshift=-\tcboxedtitleheight/2}, fonttitle=\bfseries,varwidth boxed title=0.85\linewidth, coltitle=black, fonttitle=\gtfamily, 
+enlarge top by=2mm, enlarge bottom by=2mm, breakable, top=3mm, bottom=3mm,
+boxed title style={colback=white,left=0mm,right=0mm,top=-1mm,bottom=-1mm}, 
+underlay unbroken={\draw[black!40!white,line width=.5pt]
+       (title.east|-frame.north east)--([xshift=-#3pt]frame.north east) 
+       -- ++ (0,-#3pt);
+       \draw[black!40!white,line width=.5pt]
+       ([xshift=-#3*4.5pt]frame.north east) -- ++ (0,-#3*3.5pt) -- ++ (#3pt,0);
+       \draw[black!40!white,line width=.5pt]
+       ([yshift=-#3pt]title.east|-frame.north east)--([yshift=-#3pt,xshift=-#3*6pt]frame.north east);
+       \draw[black!40!white,line width=.5pt]
+       (title.west|-frame.north west)--([xshift=#3pt]frame.north west) 
+       -- ([xshift=#3pt,yshift=#3*6pt]frame.south west);
+       \draw[black!40!white,line width=.5pt]
+       ([yshift=-#3pt]title.west|-frame.north west)--([yshift=-#3pt]frame.north west) 
+       -- ([yshift=#3pt]frame.south west) -- ++ (#3pt,0);
+       \draw[black!40!white,line width=.5pt]
+       ([yshift=#3*4.5pt]frame.south west) -- ++ (#3*3.5pt,0) -- ++ (0,-#3pt);
+       \draw[black,line width=.5pt]
+       ([xshift=-#3pt,yshift=-#3pt]frame.north east) -- ++ (#3pt,0) -- ([yshift=#3pt]frame.south east) -- ([xshift=#3*6pt,yshift=#3pt]frame.south west);
+       \draw[black,line width=.5pt]
+       ([xshift=-#3*3.5pt,yshift=-#3*3.5pt]frame.north east) -- ++ (0,-#3pt) -- ++ (#3*3.5pt,0);
+       \draw[black,line width=.5pt]
+       ([xshift=-#3pt,yshift=-#3*6pt]frame.north east) -- ([xshift=-#3pt]frame.south east) -- ([xshift=#3pt]frame.south west) -- ++ (0,#3pt);
+       \draw[black,line width=.5pt]
+       ([xshift=#3*4.5pt]frame.south west) -- ++ (0,#3*3.5pt) -- ++ (-#3pt,0);
+       \fill[black!70!white,line width=.5pt]
+       ([xshift=-#3pt,yshift=-#3pt]frame.north east) -- ++ (0,-#3*2.5pt) -- ++ (-#3*2.5pt,0) -- ++ (0,#3*2.5pt) -- cycle;
+       \fill[black!70!white,line width=.5pt]
+       ([xshift=#3pt,yshift=#3pt]frame.south west) -- ++ (0,#3*2.5pt) -- ++ (#3*2.5pt,0) -- ++ (0,-#3*2.5pt) -- cycle;
+       },
+underlay first={\draw[black!40!white,line width=.5pt]
+       (title.east|-frame.north east)--([xshift=-#3pt]frame.north east) 
+       -- ++ (0,-#3pt);
+       \draw[black!40!white,line width=.5pt]
+       ([xshift=-#3*4.5pt]frame.north east) -- ++ (0,-#3*3.5pt) -- ++ (#3pt,0);
+       \draw[black!40!white,line width=.5pt]
+       ([yshift=-#3pt]title.east|-frame.north east)--([yshift=-#3pt,xshift=-#3*6pt]frame.north east);
+       \draw[black!40!white,line width=.5pt]
+       (title.west|-frame.north west)--([xshift=#3pt]frame.north west) 
+       -- ([xshift=#3pt]frame.south west);
+       \draw[black!40!white,line width=.5pt]
+       ([yshift=-#3pt]title.west|-frame.north west)--([yshift=-#3pt]frame.north west) 
+       -- (frame.south west);
+       \draw[black,line width=.5pt]
+       ([xshift=-#3pt,yshift=-#3pt]frame.north east) -- ++ (#3pt,0) -- (frame.south east);
+       \draw[black,line width=.5pt]
+       ([xshift=-#3*3.5pt,yshift=-#3*3.5pt]frame.north east) -- ++ (0,-#3pt) -- ++ (#3*3.5pt,0);
+       \draw[black,line width=.5pt]
+       ([xshift=-#3pt,yshift=-#3*6pt]frame.north east) -- ([xshift=-#3pt]frame.south east);
+       \fill[black!70!white,line width=.5pt]
+       ([xshift=-#3pt,yshift=-#3pt]frame.north east) -- ++ (0,-#3*2.5pt) -- ++ (-#3*2.5pt,0) -- ++ (0,#3*2.5pt) -- cycle;
+       },
+underlay middle={\draw[black!40!white,line width=.5pt]
+       (frame.north west)--(frame.south west) ;
+       \draw[black!40!white,line width=.5pt]
+       ([xshift=#3pt]frame.north west)--([xshift=#3pt]frame.south west) ;
+       \draw[black,line width=.5pt]
+       (frame.north east)--(frame.south east) ;
+       \draw[black,line width=.5pt]
+       ([xshift=-#3pt]frame.north east)--([xshift=-#3pt]frame.south east) ;
+       },
+underlay last={
+       \draw[black!40!white,line width=.5pt]
+       ([xshift=#3pt]frame.north west) -- ([xshift=#3pt,yshift=#3*6pt]frame.south west);
+       \draw[black!40!white,line width=.5pt]
+       (frame.north west) -- ([yshift=#3pt]frame.south west) -- ++ (#3pt,0);
+       \draw[black!40!white,line width=.5pt]
+       ([yshift=#3*4.5pt]frame.south west) -- ++ (#3*3.5pt,0) -- ++ (0,-#3pt);
+       \draw[black,line width=.5pt]
+       (frame.north east) -- ([yshift=#3pt]frame.south east) -- ([xshift=#3*6pt,yshift=#3pt]frame.south west);
+       \draw[black,line width=.5pt]
+       ([xshift=-#3pt]frame.north east) -- ([xshift=-#3pt]frame.south east) -- ([xshift=#3pt]frame.south west) -- ++ (0,#3pt);
+       \draw[black,line width=.5pt]
+       ([xshift=#3*4.5pt]frame.south west) -- ++ (0,#3*3.5pt) -- ++ (-#3pt,0);
+       \fill[black!70!white,line width=.5pt]
+       ([xshift=#3pt,yshift=#3pt]frame.south west) -- ++ (0,#3*2.5pt) -- ++ (#3*2.5pt,0) -- ++ (0,-#3*2.5pt) -- cycle;
+       },
+IfValueTF={#1}{title=【#2】〈#1〉}{title=【#2】},#4}
+
+\endinput
