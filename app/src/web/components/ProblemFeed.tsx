@@ -35,7 +35,7 @@ function FeedItem({ item, isLast }: { item: ActivityItem; isLast: boolean }) {
 			</div>
 			{item.type === 'self_check' ? (
 				<>
-					<div className="relative flex size-6 flex-none items-center justify-center bg-white">
+					<div className="relative flex size-6 flex-none items-center justify-center bg-stone-50">
 						<span
 							className={classNames(
 								'flex size-5 items-center justify-center rounded-full text-[11px] font-bold ring-1',
@@ -54,7 +54,7 @@ function FeedItem({ item, isLast }: { item: ActivityItem; isLast: boolean }) {
 				</>
 			) : (
 				<>
-					<div className="relative flex size-6 flex-none items-center justify-center bg-white">
+					<div className="relative flex size-6 flex-none items-center justify-center bg-stone-50">
 						{item.status === 'graded' ? (
 							<CheckCircleIcon aria-hidden="true" className="size-6 text-brand-600" />
 						) : (
@@ -69,15 +69,17 @@ function FeedItem({ item, isLast }: { item: ActivityItem; isLast: boolean }) {
 							</time>
 						</div>
 						{item.message && <p className="mt-1.5 text-sm/6 whitespace-pre-wrap text-stone-600">{item.message}</p>}
-						<div className="mt-2 flex items-center justify-between gap-x-2">
+						<div className="mt-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
 							{item.verdict ? <VerdictBadge verdict={item.verdict} /> : <StatusBadge status={item.status} />}
-							<Link
-								to={`/submissions/${item.id}`}
-								className="inline-flex items-center gap-0.5 text-xs font-medium text-brand-700 hover:underline"
-							>
-								添削結果を見る
-								<ChevronRightIcon aria-hidden="true" className="size-3.5" />
-							</Link>
+							{item.status === 'graded' && (
+								<Link
+									to={`/submissions/${item.id}`}
+									className="inline-flex items-center gap-0.5 text-xs font-medium text-brand-700 hover:underline"
+								>
+									添削結果を確認する
+									<ChevronRightIcon aria-hidden="true" className="size-3.5" />
+								</Link>
+							)}
 						</div>
 					</div>
 				</>
@@ -135,6 +137,8 @@ export function ProblemFeed({ slug, me, onSubmitted }: { slug: string; me: Me | 
 			if (fileInputRef.current) fileInputRef.current.value = '';
 			reload();
 			onSubmitted();
+			// サイドバーの残り回数チップを更新する
+			window.dispatchEvent(new Event('usage-changed'));
 		} catch (err) {
 			setError((err as Error).message);
 		} finally {
@@ -156,8 +160,8 @@ export function ProblemFeed({ slug, me, onSubmitted }: { slug: string; me: Me | 
 	}
 
 	return (
-		<div className="rounded-xl border border-stone-200 bg-white shadow-sm">
-			<div className="border-b border-stone-200 px-4 py-3">
+		<div className="flex h-full min-h-80 flex-col bg-stone-50 lg:min-h-0">
+			<div className="shrink-0 px-4 py-3">
 				<h2 className="text-sm font-semibold text-stone-900">添削・学習記録</h2>
 			</div>
 
@@ -171,7 +175,7 @@ export function ProblemFeed({ slug, me, onSubmitted }: { slug: string; me: Me | 
 				</div>
 			) : (
 				<>
-					<div ref={listRef} className="max-h-96 overflow-y-auto px-4 py-4">
+					<div ref={listRef} className="flex-1 overflow-y-auto px-4 py-4">
 						{items.length === 0 ? (
 							<p className="text-sm text-stone-500">
 								まだ記録がありません。ノートに解いた答案を撮影して添削を依頼するか、⚪︎△×で学習記録をつけましょう
@@ -185,7 +189,7 @@ export function ProblemFeed({ slug, me, onSubmitted }: { slug: string; me: Me | 
 						)}
 					</div>
 
-					<div className="space-y-3 border-t border-stone-200 px-4 py-3">
+					<div className="shrink-0 space-y-3 bg-stone-50 px-4 py-3">
 						<div className="flex items-center gap-2">
 							<span className="text-xs text-stone-500">学習記録をつける</span>
 							{(Object.keys(SELF_CHECK_STYLES) as SelfCheckResult[]).map((result) => (
@@ -266,10 +270,7 @@ export function ProblemFeed({ slug, me, onSubmitted }: { slug: string; me: Me | 
 						</form>
 
 						{error && <p className="text-xs text-rose-600">{error}</p>}
-						<p className="text-xs text-stone-400">
-							答案は名前などの個人情報が写り込まないように撮影してください
-							{remaining !== null && ` ・本日あと${Math.max(remaining, 0)}回`}
-						</p>
+						<p className="text-xs text-stone-400">答案は名前などの個人情報が写り込まないように撮影してください</p>
 					</div>
 				</>
 			)}

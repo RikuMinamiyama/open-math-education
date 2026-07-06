@@ -1,29 +1,26 @@
-import { ChevronLeftIcon } from "@heroicons/react/20/solid";
-import { useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
-import { useFetch, type SubmissionDetail } from "../api";
-import { BreadcrumbSeparator } from "../components/Breadcrumb";
-import { StatusBadge, VerdictBadge } from "../components/badges";
-import { MathText } from "../components/Katex";
-import { SectionHeading } from "../components/SectionHeading";
+import { ChevronLeftIcon } from '@heroicons/react/20/solid';
+import { useEffect } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { useFetch, type SubmissionDetail } from '../api';
+import { BreadcrumbSeparator } from '../components/Breadcrumb';
+import { StatusBadge, VerdictBadge } from '../components/badges';
+import { MathText } from '../components/Katex';
+import { SectionHeading } from '../components/SectionHeading';
 
 const ERROR_TYPE_LABELS: Record<string, string> = {
-	calculation: "計算ミス",
-	logic: "論理の誤り",
-	misconception: "概念の誤解",
-	notation: "記法の誤り",
-	incomplete: "解答の不足",
+	calculation: '計算ミス',
+	logic: '論理の誤り',
+	misconception: '概念の誤解',
+	notation: '記法の誤り',
+	incomplete: '解答の不足',
 };
 
 export function SubmissionPage() {
 	const { id } = useParams();
-	const { data, error, loading, reload } = useFetch<{ submission: SubmissionDetail }>(
-		id ? `/api/submissions/${id}` : null,
-	);
+	const { data, error, loading, reload } = useFetch<{ submission: SubmissionDetail }>(id ? `/api/submissions/${id}` : null);
 
 	const submission = data?.submission;
-	const pending =
-		submission && (submission.status === "uploaded" || submission.status === "queued" || submission.status === "grading");
+	const pending = submission && (submission.status === 'uploaded' || submission.status === 'queued' || submission.status === 'grading');
 
 	// 添削完了までポーリングする
 	useEffect(() => {
@@ -41,8 +38,8 @@ export function SubmissionPage() {
 	return (
 		<div className="space-y-6">
 			<nav className="flex flex-wrap items-center gap-x-1 text-sm text-stone-500">
-				<Link to="/history" className="hover:underline">
-					学習履歴
+				<Link to="/" className="hover:underline">
+					単元一覧
 				</Link>
 				{submission.problem && (
 					<>
@@ -56,6 +53,16 @@ export function SubmissionPage() {
 				<span>添削結果</span>
 			</nav>
 
+			{submission.problem && (
+				<Link
+					to={`/problems/${submission.problem.slug}`}
+					className="inline-flex items-center gap-0.5 text-sm font-medium text-brand-700 hover:underline"
+				>
+					<ChevronLeftIcon aria-hidden="true" className="size-3.5" />
+					問題ページに戻る
+				</Link>
+			)}
+
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<h1 className="text-xl font-bold">
 					{submission.problem ? (
@@ -63,7 +70,7 @@ export function SubmissionPage() {
 							{submission.problem.title}
 						</Link>
 					) : (
-						"添削結果"
+						'添削結果'
 					)}
 				</h1>
 				<StatusBadge status={submission.status} />
@@ -97,7 +104,7 @@ export function SubmissionPage() {
 				</div>
 			)}
 
-			{submission.status === "failed" && (
+			{submission.status === 'failed' && (
 				<div className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-800">
 					添削処理に失敗しました。時間をおいてもう一度アップロードしてください
 				</div>
@@ -110,9 +117,7 @@ export function SubmissionPage() {
 						<div className="space-y-3 pt-5">
 							<div className="flex items-center gap-3">
 								<VerdictBadge verdict={submission.grading.verdict} />
-								{submission.grading.model === "mock" && (
-									<span className="text-xs text-stone-400">モック添削（APIキー未設定）</span>
-								)}
+								{submission.grading.model === 'mock' && <span className="text-xs text-stone-400">モック添削（APIキー未設定）</span>}
 							</div>
 							<MathText text={feedback.overall_comment} />
 						</div>
@@ -124,8 +129,8 @@ export function SubmissionPage() {
 							<ul className="space-y-4 pt-5">
 								{feedback.steps.map((step, i) => (
 									<li key={i} className="flex gap-3">
-										<span className={`mt-0.5 text-lg leading-none ${step.ok ? "text-emerald-500" : "text-rose-500"}`}>
-											{step.ok ? "○" : "×"}
+										<span className={`mt-0.5 text-lg leading-none ${step.ok ? 'text-emerald-500' : 'text-rose-500'}`}>
+											{step.ok ? '○' : '×'}
 										</span>
 										<div>
 											<MathText text={step.summary} className="text-sm font-medium" />
@@ -175,18 +180,6 @@ export function SubmissionPage() {
 							<MathText text={feedback.transcription} className="text-sm" />
 						</div>
 					</details>
-				</div>
-			)}
-
-			{submission.problem && (
-				<div className="border-t border-stone-200 pt-6">
-					<Link
-						to={`/problems/${submission.problem.slug}`}
-						className="inline-flex items-center gap-0.5 text-sm font-medium text-brand-700 hover:underline"
-					>
-						<ChevronLeftIcon aria-hidden="true" className="size-3.5" />
-						問題ページに戻ってもう一度解く
-					</Link>
 				</div>
 			)}
 		</div>

@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogBackdrop, DialogPanel, TransitionChild } from "@headlessui/react";
 import {
 	ArrowRightOnRectangleIcon,
 	ArrowRightStartOnRectangleIcon,
 	Bars3Icon,
-	ClockIcon,
 	Cog6ToothIcon,
 	HomeIcon,
 	UserPlusIcon,
@@ -27,11 +26,8 @@ type NavItem = {
 function useNavigation(session: ReturnType<typeof useSession>["data"], me: Me | null): NavItem[] {
 	const items: NavItem[] = [{ name: "単元一覧", to: "/", icon: HomeIcon }];
 
-	if (session?.user) {
-		items.push({ name: "学習履歴", to: "/history", icon: ClockIcon });
-		if (isEditor(me)) {
-			items.push({ name: "管理", to: "/admin", icon: Cog6ToothIcon });
-		}
+	if (session?.user && isEditor(me)) {
+		items.push({ name: "管理", to: "/admin", icon: Cog6ToothIcon });
 	}
 
 	return items;
@@ -39,7 +35,9 @@ function useNavigation(session: ReturnType<typeof useSession>["data"], me: Me | 
 
 function pageTitle(pathname: string): string {
 	if (pathname === "/") return "単元一覧";
-	if (pathname.startsWith("/history")) return "学習履歴";
+	if (pathname.startsWith("/settings")) return "設定";
+	if (pathname.startsWith("/admin/tags")) return "単元・項目";
+	if (pathname.startsWith("/admin/units/")) return "問題管理";
 	if (pathname.startsWith("/admin")) return "管理";
 	if (pathname.startsWith("/login")) return "ログイン";
 	if (pathname.startsWith("/signup")) return "新規登録";
@@ -90,6 +88,43 @@ function SidebarNav({ items, onNavigate }: { items: NavItem[]; onNavigate?: () =
 	);
 }
 
+function UserAvatar({
+	user,
+	className,
+}: {
+	user: { name?: string | null; email: string; image?: string | null };
+	className?: string;
+}) {
+	if (user.image) {
+		return <img src={user.image} alt="" className={classNames("shrink-0 rounded-full object-cover", className)} />;
+	}
+	return (
+		<div
+			className={classNames(
+				"flex shrink-0 items-center justify-center rounded-full bg-brand-100 font-semibold text-brand-800",
+				className,
+			)}
+		>
+			{user.name?.[0]?.toUpperCase() ?? user.email[0]?.toUpperCase() ?? "?"}
+		</div>
+	);
+}
+
+function UsageChip({ me }: { me: Me | null }) {
+	if (!me?.usage) return null;
+	const remaining = Math.max(me.usage.limit - me.usage.used, 0);
+	return (
+		<span
+			className={classNames(
+				"inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset",
+				remaining > 0 ? "bg-brand-50 text-brand-700 ring-brand-200" : "bg-stone-100 text-stone-500 ring-stone-200",
+			)}
+		>
+			本日の添削 あと{remaining}回
+		</span>
+	);
+}
+
 function SidebarBrand() {
 	return (
 		<div className="flex h-16 shrink-0 items-center">
@@ -102,11 +137,13 @@ function SidebarBrand() {
 
 function SidebarFooter({
 	session,
+	me,
 	isPending,
 	onSignOut,
 	onNavigate,
 }: {
 	session: ReturnType<typeof useSession>["data"];
+	me: Me | null;
 	isPending: boolean;
 	onSignOut: () => void;
 	onNavigate?: () => void;
@@ -115,15 +152,14 @@ function SidebarFooter({
 
 	if (session?.user) {
 		return (
-			<div className="-mx-6 mt-auto border-t border-stone-200">
-				<div className="flex items-center gap-x-3 px-6 py-3">
-					<div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-800">
-						{session.user.name?.[0]?.toUpperCase() ?? session.user.email[0]?.toUpperCase() ?? "?"}
-					</div>
+			<div className="-mx-6 mt-auto">
+				<Link to="/settings" onClick={onNavigate} className="flex items-center gap-x-3 px-6 py-3 hover:bg-stone-50">
+					<UserAvatar user={session.user} className="size-8 text-sm" />
 					<div className="min-w-0 flex-1">
 						<p className="truncate text-sm/6 font-semibold text-stone-900">{session.user.name ?? session.user.email}</p>
+						<UsageChip me={me} />
 					</div>
-				</div>
+				</Link>
 				<button
 					type="button"
 					onClick={() => {
@@ -140,7 +176,7 @@ function SidebarFooter({
 	}
 
 	return (
-		<div className="-mx-6 mt-auto border-t border-stone-200">
+		<div className="-mx-6 mt-auto">
 			<NavLink
 				to="/login"
 				onClick={onNavigate}
@@ -164,12 +200,14 @@ function SidebarFooter({
 function SidebarPanel({
 	items,
 	session,
+	me,
 	isPending,
 	onSignOut,
 	onNavigate,
 }: {
 	items: NavItem[];
 	session: ReturnType<typeof useSession>["data"];
+	me: Me | null;
 	isPending: boolean;
 	onSignOut: () => void;
 	onNavigate?: () => void;
@@ -178,7 +216,7 @@ function SidebarPanel({
 		<div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-stone-200 bg-white px-6">
 			<SidebarBrand />
 			<SidebarNav items={items} onNavigate={onNavigate} />
-			<SidebarFooter session={session} isPending={isPending} onSignOut={onSignOut} onNavigate={onNavigate} />
+			<SidebarFooter session={session} me={me} isPending={isPending} onSignOut={onSignOut} onNavigate={onNavigate} />
 		</div>
 	);
 }
@@ -186,10 +224,16 @@ function SidebarPanel({
 export function Layout() {
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const { data: session, isPending } = useSession();
-	const { data: me } = useFetch<Me>("/api/me");
+	const { data: me, reload: reloadMe } = useFetch<Me>("/api/me");
 	const navigate = useNavigate();
 	const { pathname } = useLocation();
 	const navigation = useNavigation(session, me);
+
+	// 添削依頼で残り回数が変わったらチップを更新する
+	useEffect(() => {
+		window.addEventListener("usage-changed", reloadMe);
+		return () => window.removeEventListener("usage-changed", reloadMe);
+	}, [reloadMe]);
 
 	async function handleSignOut() {
 		await signOut();
@@ -223,6 +267,7 @@ export function Layout() {
 							<SidebarNav items={navigation} onNavigate={() => setSidebarOpen(false)} />
 							<SidebarFooter
 								session={session}
+								me={me}
 								isPending={isPending}
 								onSignOut={handleSignOut}
 								onNavigate={() => setSidebarOpen(false)}
@@ -236,6 +281,7 @@ export function Layout() {
 				<SidebarPanel
 					items={navigation}
 					session={session}
+					me={me}
 					isPending={isPending}
 					onSignOut={handleSignOut}
 				/>
@@ -252,9 +298,9 @@ export function Layout() {
 				</button>
 				<div className="flex-1 text-sm/6 font-semibold text-stone-900">{pageTitle(pathname)}</div>
 				{session?.user ? (
-					<div className="flex size-8 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-800">
-						{session.user.name?.[0]?.toUpperCase() ?? session.user.email[0]?.toUpperCase() ?? "?"}
-					</div>
+					<Link to="/settings">
+						<UserAvatar user={session.user} className="size-8 text-sm" />
+					</Link>
 				) : (
 					!isPending && (
 						<Link to="/login" className="text-sm font-semibold text-brand-700">
@@ -265,11 +311,10 @@ export function Layout() {
 			</div>
 
 			<main className="flex min-h-dvh flex-col bg-stone-50 py-10 lg:pl-72">
-				{/* 問題ページは右側のフィード分だけ広げる */}
-				<div className="w-full flex-1 px-4 sm:px-6 lg:px-8">
+				<div className="flex w-full min-h-0 flex-1 flex-col px-4 sm:px-6 lg:px-8">
 					<Outlet />
 				</div>
-				<footer className="mt-auto border-t border-stone-200 py-6 text-center text-xs text-stone-500">
+				<footer className="mt-auto shrink-0 py-6 text-center text-xs text-stone-500">
 					<p>
 						問題・解説は{" "}
 						<a

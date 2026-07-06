@@ -35,8 +35,24 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
 	return res.json() as Promise<T>;
 }
 
+export async function apiPut<T>(path: string, body: unknown): Promise<T> {
+	const res = await fetch(path, {
+		method: "PUT",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify(body),
+	});
+	if (!res.ok) throw await parseError(res);
+	return res.json() as Promise<T>;
+}
+
 export async function apiPostForm<T>(path: string, form: FormData): Promise<T> {
 	const res = await fetch(path, { method: "POST", body: form });
+	if (!res.ok) throw await parseError(res);
+	return res.json() as Promise<T>;
+}
+
+export async function apiDelete<T>(path: string): Promise<T> {
+	const res = await fetch(path, { method: "DELETE" });
 	if (!res.ok) throw await parseError(res);
 	return res.json() as Promise<T>;
 }
@@ -86,6 +102,10 @@ export function isEditor(me: Me | null): boolean {
 	return me?.user != null && (me.user.role === "teacher" || me.user.role === "admin");
 }
 
+export function isAdmin(me: Me | null): boolean {
+	return me?.user?.role === "admin";
+}
+
 export interface Unit {
 	slug: string;
 	name: string;
@@ -97,6 +117,8 @@ export interface ProblemSummary {
 	slug: string;
 	title: string;
 	difficulty: number;
+	selfChecks: ProgressSelfCheck[];
+	submissionCount: number;
 }
 
 export interface ProblemDetail {
@@ -109,6 +131,8 @@ export interface ProblemDetail {
 	license: string;
 	attribution: string | null;
 	tags: ProblemTag[];
+	prev: { slug: string; title: string } | null;
+	next: { slug: string; title: string } | null;
 }
 
 export interface ProblemTag {
@@ -134,6 +158,16 @@ export interface AdminTag {
 	subject: string | null;
 	parentSlug: string | null;
 	parentName: string | null;
+	sortOrder: number | null;
+}
+
+export interface AdminTagDetail {
+	slug: string;
+	name: string;
+	kind: "unit" | "topic";
+	subject: string | null;
+	parentSlug: string | null;
+	sortOrder: number | null;
 }
 
 export interface AdminProblemSummary {
@@ -142,6 +176,20 @@ export interface AdminProblemSummary {
 	difficulty: number;
 	status: "draft" | "published" | "archived";
 	updatedAt: string;
+}
+
+export interface AdminProblemInUnit {
+	slug: string;
+	title: string;
+	difficulty: number;
+	status: "draft" | "published" | "archived";
+	updatedAt: string;
+	updatedByName: string | null;
+}
+
+export interface AdminUnitGroup {
+	topic: { slug: string; name: string } | null;
+	problems: AdminProblemInUnit[];
 }
 
 export interface AdminProblemDetail {
@@ -166,6 +214,26 @@ export interface Feedback {
 	errors: { location: string; type: string; explanation: string; hint: string }[];
 	overall_comment: string;
 	next_recommendation: string;
+}
+
+export type ProgressMarkResult = "correct" | "partial" | "wrong";
+
+export interface ProgressSelfCheck {
+	result: ProgressMarkResult;
+	createdAt: string;
+}
+
+export interface ProgressProblem {
+	slug: string;
+	title: string;
+	selfChecks: ProgressSelfCheck[];
+	submissionCount: number;
+}
+
+export interface ProgressUnit {
+	slug: string;
+	name: string;
+	problems: ProgressProblem[];
 }
 
 export interface SubmissionSummary {

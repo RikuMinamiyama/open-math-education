@@ -181,6 +181,7 @@ export const problems = sqliteTable(
 		contentHash: text("content_hash"),
 		createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 		updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+		updatedBy: text("updated_by").references(() => users.id, { onDelete: "set null" }),
 	},
 	(t) => [index("idx_problems_status").on(t.status)],
 );
