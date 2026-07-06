@@ -261,6 +261,9 @@ export const submissions = sqliteTable(
 		status: text("status", { enum: ["uploaded", "queued", "grading", "graded", "failed"] })
 			.notNull()
 			.default("uploaded"),
+		// 依頼時に生徒が添えるメッセージ（添削の観点の希望など）
+		// AI添削プロンプトに注入する
+		studentMessage: text("student_message"),
 		// 添削ジョブの試行回数（Queueのリトライ管理）
 		attemptCount: integer("attempt_count").notNull().default(0),
 		lastError: text("last_error"),

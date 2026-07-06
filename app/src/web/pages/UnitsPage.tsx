@@ -15,9 +15,9 @@ export function UnitsPage() {
 
 	return (
 		<div className="space-y-8">
-			<section className="rounded-2xl bg-teal-700 px-6 py-8 text-white">
+			<section className="rounded-2xl bg-brand-500 px-6 py-8 text-brand-900">
 				<h1 className="text-xl font-bold">単元を選んで演習をはじめよう</h1>
-				<p className="mt-2 text-sm text-teal-50">
+				<p className="mt-2 text-sm text-brand-800">
 					問題を解いたらノートを撮影してアップロード。AIがあなたの答案を添削します
 				</p>
 			</section>
@@ -29,7 +29,7 @@ export function UnitsPage() {
 							<Link
 								key={unit.slug}
 								to={`/units/${unit.slug}`}
-								className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm transition hover:border-teal-400 hover:shadow"
+								className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm transition hover:border-brand-400 hover:shadow"
 							>
 								<div className="font-semibold">{unit.name}</div>
 								<div className="mt-1 text-xs text-stone-500">{unit.problemCount}問</div>

@@ -230,6 +230,9 @@ CREATE TABLE submissions (
   org_id        TEXT REFERENCES organizations(id) ON DELETE SET NULL,
   status        TEXT NOT NULL DEFAULT 'uploaded'
                   CHECK (status IN ('uploaded', 'queued', 'grading', 'graded', 'failed')),
+  -- 依頼時に生徒が添えるメッセージ（添削の観点の希望など）
+  -- AI添削プロンプトに注入する
+  student_message TEXT,
   -- 添削ジョブの試行回数（Queueのリトライ管理）
   attempt_count INTEGER NOT NULL DEFAULT 0,
   last_error    TEXT,

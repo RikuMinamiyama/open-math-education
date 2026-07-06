@@ -3,7 +3,17 @@ import { alias } from 'drizzle-orm/sqlite-core';
 import { Hono } from 'hono';
 import { createAuth, type SessionUser } from './auth';
 import { getDb } from './db/client';
-import { gradings, problems, problemTags, submissionImages, submissions, tags, usageDaily, userConsents } from './db/schema';
+import {
+	gradings,
+	problems,
+	problemTags,
+	selfChecks,
+	submissionImages,
+	submissions,
+	tags,
+	usageDaily,
+	userConsents,
+} from './db/schema';
 import { uuidv7 } from './lib/id';
 import { jstDay } from './lib/time';
 
@@ -14,6 +24,7 @@ const TERMS_VERSION = '2026-07-06';
 const MAX_IMAGES = 4;
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const MAX_MESSAGE_LENGTH = 500;
 
 type Variables = {
 	user: SessionUser | null;
@@ -249,6 +260,11 @@ app.post('/api/problems/:slug/submissions', async (c) => {
 
 	const form = await c.req.formData();
 	const files = form.getAll('images').filter((f): f is File => f instanceof File);
+	const messageRaw = form.get('message');
+	const message = typeof messageRaw === 'string' ? messageRaw.trim() : '';
+	if (message.length > MAX_MESSAGE_LENGTH) {
+		return c.json({ error: `メッセージは${MAX_MESSAGE_LENGTH}文字までです` }, 400);
+	}
 	if (files.length === 0) {
 		return c.json({ error: '答案の画像を選択してください' }, 400);
 	}
@@ -289,6 +305,7 @@ app.post('/api/problems/:slug/submissions', async (c) => {
 		userId: user.id,
 		problemId: problem.id,
 		status: 'queued',
+		studentMessage: message || null,
 		createdAt: now,
 	});
 	await db.insert(submissionImages).values(imageRows);
@@ -303,6 +320,81 @@ app.post('/api/problems/:slug/submissions', async (c) => {
 	await c.env.GRADING_QUEUE.send({ submissionId });
 
 	return c.json({ id: submissionId }, 201);
+});
+
+// 問題ページのフィード（本人の添削依頼と学習記録を時系列で返す）
+app.get('/api/problems/:slug/activity', async (c) => {
+	const user = requireUser(c);
+	const db = getDb(c.env);
+	const problem = await db.query.problems.findFirst({
+		where: and(eq(problems.slug, c.req.param('slug')), eq(problems.status, 'published')),
+	});
+	if (!problem) {
+		return c.json({ error: '問題が見つかりません' }, 404);
+	}
+	// JOINのない単一テーブルselectではdrizzleが列名を修飾しないため
+	// サブクエリ内で列があいまいにならないようテーブル名を明示する
+	const submissionRows = await db
+		.select({
+			id: submissions.id,
+			status: submissions.status,
+			message: submissions.studentMessage,
+			createdAt: submissions.createdAt,
+			verdict: sql<
+				string | null
+			>`(select verdict from gradings g where g.submission_id = "submissions"."id" order by g.created_at desc limit 1)`,
+		})
+		.from(submissions)
+		.where(and(eq(submissions.userId, user.id), eq(submissions.problemId, problem.id)))
+		.orderBy(asc(submissions.createdAt));
+	// idはUUIDv7なので同時刻の記録も生成順に並ぶ
+	const checkRows = await db.query.selfChecks.findMany({
+		where: and(eq(selfChecks.userId, user.id), eq(selfChecks.problemId, problem.id)),
+		orderBy: [asc(selfChecks.createdAt), asc(selfChecks.id)],
+	});
+	const items = [
+		...submissionRows.map((s) => ({
+			type: 'submission' as const,
+			id: s.id,
+			status: s.status,
+			verdict: s.verdict,
+			message: s.message,
+			createdAt: s.createdAt,
+		})),
+		// 何回目の記録かは同一問題内の通し番号
+		...checkRows.map((sc, i) => ({
+			type: 'self_check' as const,
+			id: sc.id,
+			result: sc.result,
+			attemptNo: i + 1,
+			createdAt: sc.createdAt,
+		})),
+	].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+	return c.json({ items });
+});
+
+// 学習記録（⚪︎△×の自己採点）
+app.post('/api/problems/:slug/self-checks', async (c) => {
+	const user = requireUser(c);
+	const db = getDb(c.env);
+	const problem = await db.query.problems.findFirst({
+		where: and(eq(problems.slug, c.req.param('slug')), eq(problems.status, 'published')),
+	});
+	if (!problem) {
+		return c.json({ error: '問題が見つかりません' }, 404);
+	}
+	const body = await c.req.json<{ result?: string }>();
+	if (body.result !== 'correct' && body.result !== 'partial' && body.result !== 'wrong') {
+		return c.json({ error: 'resultが不正です' }, 400);
+	}
+	await db.insert(selfChecks).values({
+		id: uuidv7(),
+		userId: user.id,
+		problemId: problem.id,
+		result: body.result,
+		createdAt: new Date(),
+	});
+	return c.json({ ok: true }, 201);
 });
 
 app.get('/api/submissions', async (c) => {
@@ -352,6 +444,7 @@ app.get('/api/submissions/:id', async (c) => {
 			id: submission.id,
 			status: submission.status,
 			createdAt: submission.createdAt,
+			studentMessage: submission.studentMessage,
 			problem: problem ? { slug: problem.slug, title: problem.title, statementTex: problem.statementTex } : null,
 			images: images.map((img) => ({ id: img.id, pageNo: img.pageNo })),
 			grading: grading

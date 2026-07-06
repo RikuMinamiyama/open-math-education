@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiPost, useFetch, type AdminProblemDetail, type AdminTag } from "../../api";
+import { BreadcrumbSeparator } from "../../components/Breadcrumb";
 import { MathText } from "../../components/Katex";
 
 // 新規作成と編集を兼ねるフォーム
@@ -89,11 +90,11 @@ export function ProblemEditPage() {
 
 	return (
 		<div className="space-y-4">
-			<nav className="text-sm text-stone-500">
+			<nav className="flex flex-wrap items-center gap-x-1 text-sm text-stone-500">
 				<Link to="/admin" className="hover:underline">
 					問題管理
 				</Link>
-				<span className="mx-1">/</span>
+				<BreadcrumbSeparator />
 				<span>{isNew ? "新規作成" : form.title}</span>
 			</nav>
 			<h1 className="text-xl font-bold">{isNew ? "新しい問題を作る" : "問題を編集する"}</h1>
@@ -110,7 +111,7 @@ export function ProblemEditPage() {
 							onChange={(e) => setForm({ ...form, slug: e.target.value })}
 							placeholder="例: insu-bunkai-002"
 							pattern="[a-z0-9][a-z0-9-]*"
-							className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-teal-500 focus:outline-none disabled:bg-stone-100 disabled:text-stone-500"
+							className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-brand-500 focus:outline-none disabled:bg-stone-100 disabled:text-stone-500"
 						/>
 					</label>
 					<label className="block text-sm">
@@ -120,7 +121,7 @@ export function ProblemEditPage() {
 							required
 							value={form.title}
 							onChange={(e) => setForm({ ...form, title: e.target.value })}
-							className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-teal-500 focus:outline-none"
+							className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-brand-500 focus:outline-none"
 						/>
 					</label>
 					<label className="block text-sm">
@@ -129,7 +130,7 @@ export function ProblemEditPage() {
 							required
 							value={form.tagSlug}
 							onChange={(e) => setForm({ ...form, tagSlug: e.target.value })}
-							className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 focus:border-teal-500 focus:outline-none"
+							className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 focus:border-brand-500 focus:outline-none"
 						>
 							<option value="">選択してください</option>
 							{units.map((unit) => (
@@ -156,7 +157,7 @@ export function ProblemEditPage() {
 								max={10}
 								value={form.difficulty}
 								onChange={(e) => setForm({ ...form, difficulty: Number(e.target.value) })}
-								className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-teal-500 focus:outline-none"
+								className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-brand-500 focus:outline-none"
 							/>
 						</label>
 						<label className="block text-sm">
@@ -164,7 +165,7 @@ export function ProblemEditPage() {
 							<select
 								value={form.status}
 								onChange={(e) => setForm({ ...form, status: e.target.value as "draft" | "published" })}
-								className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 focus:border-teal-500 focus:outline-none"
+								className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 focus:border-brand-500 focus:outline-none"
 							>
 								<option value="draft">下書き</option>
 								<option value="published">公開</option>
@@ -194,7 +195,7 @@ export function ProblemEditPage() {
 						value={form.gradingNotes}
 						onChange={(e) => setForm({ ...form, gradingNotes: e.target.value })}
 						placeholder="例: 平方完成の確認。軸が区間内にあることへの言及がない場合はlogicとして指摘。"
-						className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 font-mono text-sm focus:border-teal-500 focus:outline-none"
+						className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 font-mono text-sm focus:border-brand-500 focus:outline-none"
 					/>
 				</label>
 
@@ -203,7 +204,7 @@ export function ProblemEditPage() {
 					<button
 						type="submit"
 						disabled={busy}
-						className="rounded-lg bg-teal-700 px-5 py-2 text-sm font-medium text-white transition hover:bg-teal-600 disabled:bg-stone-300"
+						className="rounded-lg bg-brand-700 px-5 py-2 text-sm font-medium text-white transition hover:bg-brand-600 disabled:bg-stone-300"
 					>
 						{busy ? "保存中..." : "保存する"}
 					</button>
@@ -242,7 +243,7 @@ function TexField({
 					required={required}
 					value={value}
 					onChange={(e) => onChange(e.target.value)}
-					className="w-full rounded-lg border border-stone-300 px-3 py-2 font-mono text-sm focus:border-teal-500 focus:outline-none"
+					className="w-full rounded-lg border border-stone-300 px-3 py-2 font-mono text-sm focus:border-brand-500 focus:outline-none"
 				/>
 				<div className="rounded-lg border border-dashed border-stone-300 bg-white p-3">
 					{value ? <MathText text={value} className="text-sm" /> : <span className="text-xs text-stone-400">プレビュー</span>}

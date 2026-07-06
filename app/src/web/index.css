@@ -1,17 +1,30 @@
-@import "tailwindcss";
-@import "katex/dist/katex.min.css";
+@import 'tailwindcss';
+@import 'katex/dist/katex.min.css';
 
 @theme {
-	--font-sans: "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", system-ui, sans-serif;
+	--font-sans: 'Hiragino Sans', 'Noto Sans JP', 'Yu Gothic UI', system-ui, sans-serif;
+	--color-brand-50: #f4faff;
+	--color-brand-100: #e3f4fe;
+	--color-brand-200: #c5e8fc;
+	--color-brand-400: #69b8f2;
+	--color-brand-500: #87cefa;
+	--color-brand-600: #52aee6;
+	--color-brand-700: #3598d6;
+	--color-brand-800: #247bb5;
+	--color-brand-900: #185d8a;
+}
+
+html,
+body,
+#root {
+	height: 100%;
 }
 
 body {
-	background-color: var(--color-stone-50);
 	color: var(--color-stone-800);
 }
 
 .katex-display {
 	overflow-x: auto;
 	overflow-y: hidden;
-	padding: 0.25rem 0;
 }

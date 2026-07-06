@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { useFetch, type ProblemSummary, type UnitGroup } from "../api";
+import { BreadcrumbSeparator } from "../components/Breadcrumb";
 import { DifficultyStars } from "../components/badges";
 
 interface UnitResponse {
@@ -14,7 +15,7 @@ function ProblemList({ problems }: { problems: ProblemSummary[] }) {
 				<li key={problem.slug}>
 					<Link
 						to={`/problems/${problem.slug}`}
-						className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-sm transition hover:border-teal-400 hover:shadow"
+						className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-sm transition hover:border-brand-400 hover:shadow"
 					>
 						<span className="font-medium">{problem.title}</span>
 						<DifficultyStars level={problem.difficulty} />
@@ -35,11 +36,11 @@ export function UnitPage() {
 
 	return (
 		<div className="space-y-6">
-			<nav className="text-sm text-stone-500">
+			<nav className="flex flex-wrap items-center gap-x-1 text-sm text-stone-500">
 				<Link to="/" className="hover:underline">
 					単元一覧
 				</Link>
-				<span className="mx-1">/</span>
+				<BreadcrumbSeparator />
 				<span>{data.unit.name}</span>
 			</nav>
 			<h1 className="text-xl font-bold">
@@ -52,7 +53,7 @@ export function UnitPage() {
 				data.groups.map((group, i) => (
 					<section key={group.topic?.slug ?? `direct-${i}`}>
 						{group.topic && (
-							<h2 className="mb-3 border-l-4 border-teal-600 pl-2 text-sm font-bold text-stone-600">{group.topic.name}</h2>
+							<h2 className="mb-3 border-l-4 border-brand-600 pl-2 text-sm font-bold text-stone-600">{group.topic.name}</h2>
 						)}
 						<ProblemList problems={group.problems} />
 					</section>

@@ -26,7 +26,7 @@ function tokenize(text: string): Segment[] {
 }
 
 function renderTex(tex: string, displayMode: boolean): string {
-	return katex.renderToString(tex, { displayMode, throwOnError: false });
+	return katex.renderToString(tex, { displayMode, fleqn: displayMode, throwOnError: false });
 }
 
 export function MathText({ text, className }: { text: string; className?: string }) {
@@ -36,8 +36,10 @@ export function MathText({ text, className }: { text: string; className?: string
 			{segments.map((seg, i) =>
 				seg.kind === "text" ? (
 					<span key={i}>{seg.value}</span>
+				) : seg.kind === "display" ? (
+					<div key={i} dangerouslySetInnerHTML={{ __html: renderTex(seg.value, true) }} />
 				) : (
-					<span key={i} dangerouslySetInnerHTML={{ __html: renderTex(seg.value, seg.kind === "display") }} />
+					<span key={i} dangerouslySetInnerHTML={{ __html: renderTex(seg.value, false) }} />
 				),
 			)}
 		</div>

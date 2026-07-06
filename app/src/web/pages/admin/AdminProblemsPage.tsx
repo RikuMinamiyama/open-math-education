@@ -22,7 +22,7 @@ export function AdminProblemsPage() {
 				<h1 className="text-xl font-bold">問題管理</h1>
 				<Link
 					to="/admin/problems/new"
-					className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-teal-600"
+					className="rounded-lg bg-brand-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-600"
 				>
 					新しい問題を作る
 				</Link>
@@ -37,7 +37,7 @@ export function AdminProblemsPage() {
 							<li key={p.slug}>
 								<Link
 									to={`/admin/problems/${p.slug}`}
-									className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-sm transition hover:border-teal-400 hover:shadow"
+									className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-sm transition hover:border-brand-400 hover:shadow"
 								>
 									<div className="min-w-0">
 										<div className="truncate font-medium">{p.title}</div>

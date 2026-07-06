@@ -177,10 +177,30 @@ export interface SubmissionSummary {
 	verdict: Verdict | null;
 }
 
+export type SelfCheckResult = "correct" | "partial" | "wrong";
+
+export type ActivityItem =
+	| {
+			type: "submission";
+			id: string;
+			status: SubmissionStatus;
+			verdict: Verdict | null;
+			message: string | null;
+			createdAt: string;
+	  }
+	| {
+			type: "self_check";
+			id: string;
+			result: SelfCheckResult;
+			attemptNo: number;
+			createdAt: string;
+	  };
+
 export interface SubmissionDetail {
 	id: string;
 	status: SubmissionStatus;
 	createdAt: string;
+	studentMessage: string | null;
 	problem: { slug: string; title: string; statementTex: string } | null;
 	images: { id: string; pageNo: number }[];
 	grading: {

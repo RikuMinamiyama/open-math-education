@@ -16,7 +16,7 @@ export function HistoryPage() {
 			{submissions.length === 0 ? (
 				<div className="rounded-xl border border-stone-200 bg-white p-6 text-center text-sm text-stone-500">
 					まだ提出がありません。
-					<Link to="/" className="text-teal-700 underline">
+					<Link to="/" className="text-brand-700 underline">
 						単元一覧
 					</Link>
 					から問題を解いてみましょう
@@ -27,7 +27,7 @@ export function HistoryPage() {
 						<li key={s.id}>
 							<Link
 								to={`/submissions/${s.id}`}
-								className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-sm transition hover:border-teal-400 hover:shadow"
+								className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-sm transition hover:border-brand-400 hover:shadow"
 							>
 								<div className="min-w-0">
 									<div className="truncate font-medium">{s.problemTitle}</div>

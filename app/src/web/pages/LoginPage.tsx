@@ -33,7 +33,7 @@ export function LoginPage() {
 						required
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
-						className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-teal-500 focus:outline-none"
+						className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-brand-500 focus:outline-none"
 					/>
 				</label>
 				<label className="block text-sm">
@@ -43,20 +43,20 @@ export function LoginPage() {
 						required
 						value={password}
 						onChange={(e) => setPassword(e.target.value)}
-						className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-teal-500 focus:outline-none"
+						className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-brand-500 focus:outline-none"
 					/>
 				</label>
 				{error && <p className="text-sm text-rose-600">{error}</p>}
 				<button
 					type="submit"
 					disabled={busy}
-					className="w-full rounded-lg bg-teal-700 py-2.5 text-sm font-medium text-white transition hover:bg-teal-600 disabled:bg-stone-300"
+					className="w-full rounded-lg bg-brand-700 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600 disabled:bg-stone-300"
 				>
 					{busy ? "ログイン中..." : "ログイン"}
 				</button>
 				<p className="text-center text-xs text-stone-500">
 					アカウントをお持ちでない方は{" "}
-					<Link to="/signup" className="text-teal-700 underline">
+					<Link to="/signup" className="text-brand-700 underline">
 						新規登録
 					</Link>
 				</p>

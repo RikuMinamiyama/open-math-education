@@ -46,7 +46,7 @@ export function SignupPage() {
 						value={name}
 						onChange={(e) => setName(e.target.value)}
 						placeholder="実名は使わないでください"
-						className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-teal-500 focus:outline-none"
+						className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-brand-500 focus:outline-none"
 					/>
 				</label>
 				<label className="block text-sm">
@@ -56,7 +56,7 @@ export function SignupPage() {
 						required
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
-						className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-teal-500 focus:outline-none"
+						className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-brand-500 focus:outline-none"
 					/>
 				</label>
 				<label className="block text-sm">
@@ -67,7 +67,7 @@ export function SignupPage() {
 						minLength={8}
 						value={password}
 						onChange={(e) => setPassword(e.target.value)}
-						className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-teal-500 focus:outline-none"
+						className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-brand-500 focus:outline-none"
 					/>
 				</label>
 				<label className="flex items-start gap-2 text-xs text-stone-600">
@@ -80,13 +80,13 @@ export function SignupPage() {
 				<button
 					type="submit"
 					disabled={busy || !agreed}
-					className="w-full rounded-lg bg-teal-700 py-2.5 text-sm font-medium text-white transition hover:bg-teal-600 disabled:bg-stone-300"
+					className="w-full rounded-lg bg-brand-700 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600 disabled:bg-stone-300"
 				>
 					{busy ? "登録中..." : "登録する"}
 				</button>
 				<p className="text-center text-xs text-stone-500">
 					すでにアカウントをお持ちの方は{" "}
-					<Link to="/login" className="text-teal-700 underline">
+					<Link to="/login" className="text-brand-700 underline">
 						ログイン
 					</Link>
 				</p>

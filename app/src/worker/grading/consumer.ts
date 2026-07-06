@@ -85,7 +85,7 @@ async function gradeSubmission(db: Db, env: Env, submissionId: string): Promise<
 
 	const model = env.GRADING_MODEL || "claude-opus-4-8";
 	const { output, usedModel } = env.ANTHROPIC_API_KEY
-		? await callClaude(env.ANTHROPIC_API_KEY, model, imageBlocks, problem)
+		? await callClaude(env.ANTHROPIC_API_KEY, model, imageBlocks, problem, submission.studentMessage)
 		: { output: mockGradingOutput(), usedModel: "mock" };
 
 	const now = new Date();
@@ -111,6 +111,7 @@ async function callClaude(
 	model: string,
 	imageBlocks: Anthropic.ImageBlockParam[],
 	problem: Parameters<typeof buildGradingUserText>[0],
+	studentMessage?: string | null,
 ): Promise<{ output: GradingOutput; usedModel: string }> {
 	const client = new Anthropic({ apiKey });
 	const response = await client.messages.create({
@@ -121,7 +122,7 @@ async function callClaude(
 		messages: [
 			{
 				role: "user",
-				content: [...imageBlocks, { type: "text", text: buildGradingUserText(problem) }],
+				content: [...imageBlocks, { type: "text", text: buildGradingUserText(problem, studentMessage) }],
 			},
 		],
 		output_config: {
