@@ -1,0 +1,8 @@
+# ローカル開発用の環境変数
+# コピーして .dev.vars を作成する
+
+# better-authのセッション署名に使う秘密鍵
+AUTH_SECRET=change-me-to-a-long-random-string
+
+# 未設定の場合はモック添削で動作する
+# ANTHROPIC_API_KEY=sk-ant-...

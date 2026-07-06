@@ -1,0 +1,44 @@
+{
+	"name": "open-math-education-app",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview",
+		"deploy": "pnpm run build && wrangler deploy",
+		"typecheck": "tsc -p tsconfig.web.json --noEmit && tsc -p tsconfig.worker.json --noEmit",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "wrangler d1 migrations apply DB --local",
+		"db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+		"db:seed": "wrangler d1 execute DB --local --file=seed/seed.sql",
+		"db:seed:remote": "wrangler d1 execute DB --remote --file=seed/seed.sql",
+		"cf-typegen": "wrangler types"
+	},
+	"devDependencies": {
+		"@cloudflare/vite-plugin": "^1.43.0",
+		"@cloudflare/workers-types": "^5.20260704.1",
+		"@tailwindcss/vite": "^4.3.2",
+		"@types/katex": "^0.16.8",
+		"@types/node": "^26.1.0",
+		"@types/react": "^19.2.17",
+		"@types/react-dom": "^19.2.3",
+		"@vitejs/plugin-react": "^6.0.3",
+		"drizzle-kit": "^0.31.10",
+		"tailwindcss": "^4.3.2",
+		"typescript": "^5.5.2",
+		"vite": "^8.1.3",
+		"wrangler": "^4.107.0"
+	},
+	"dependencies": {
+		"@anthropic-ai/sdk": "^0.110.0",
+		"better-auth": "^1.6.23",
+		"drizzle-orm": "^0.45.2",
+		"hono": "^4.12.27",
+		"katex": "^0.17.0",
+		"react": "^19.2.7",
+		"react-dom": "^19.2.7",
+		"react-router-dom": "^7.18.1"
+	}
+}

@@ -1,0 +1,51 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "open-math-education",
+	"main": "src/worker/index.ts",
+	"compatibility_date": "2026-07-05",
+	"compatibility_flags": ["nodejs_compat"],
+	"assets": {
+		// SPAなので未知のパスはindex.htmlを返す
+		"not_found_handling": "single-page-application"
+	},
+	"observability": {
+		"enabled": true
+	},
+	"upload_source_maps": true,
+	"vars": {
+		// 無料個人の1日あたりの添削回数上限
+		"FREE_DAILY_GRADINGS": "3",
+		"GRADING_MODEL": "claude-opus-4-8"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "ome-db",
+			// デプロイ前に wrangler d1 create ome-db で発行されたIDに差し替える
+			"database_id": "00000000-0000-0000-0000-000000000000",
+			"migrations_dir": "migrations"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "ANSWERS",
+			"bucket_name": "ome-answers"
+		}
+	],
+	"queues": {
+		"producers": [
+			{
+				"binding": "GRADING_QUEUE",
+				"queue": "ome-grading"
+			}
+		],
+		"consumers": [
+			{
+				"queue": "ome-grading",
+				"max_batch_size": 2,
+				"max_batch_timeout": 2,
+				"max_retries": 3
+			}
+		]
+	}
+}
