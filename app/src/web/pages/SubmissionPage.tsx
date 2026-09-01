@@ -126,7 +126,7 @@ export function SubmissionPage() {
 			{pending && (
 				<div className="rounded-xl border border-sky-200 bg-sky-50 p-5 text-sm text-sky-900">
 					<p className="font-medium">AIが答案を読んでいます...</p>
-					<p className="mt-1 text-xs">添削には1〜2分ほどかかることがあります。このページを開いたままお待ちください</p>
+					<p className="mt-1 text-xs">添削には1〜2分ほどかかることがあります。このページを開いたままお待ちください。</p>
 				</div>
 			)}
 

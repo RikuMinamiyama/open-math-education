@@ -47,7 +47,8 @@ export const GRADING_OUTPUT_SCHEMA = {
 		},
 		transcription: {
 			type: "string",
-			description: "読み取った答案の書き起こし。数式はKaTeX互換のTeXで ${ここに数式}$ で書く。",
+			description:
+				"読み取った答案の書き起こし。手書きの数式は $A=3x^2-2x+1$ のように$で囲んだTeXに変換する。内容は誤りも含め忠実に書き起こす。",
 		},
 		steps: {
 			type: "array",
@@ -58,9 +59,9 @@ export const GRADING_OUTPUT_SCHEMA = {
 				required: ["page", "summary", "ok", "comment"],
 				properties: {
 					page: { type: "integer", description: "何枚目の画像か（1始まり）" },
-					summary: { type: "string", description: "ステップの要約。数式はKaTeX互換のTeXで ${ここに数式}$ で書く。" },
+					summary: { type: "string", description: "ステップの要約。数式は $x^2+1$ のように$で囲んだTeXで書く。" },
 					ok: { type: "boolean", description: "このステップが正しいか" },
-					comment: { type: "string", description: "ステップへの短いコメント。数式はKaTeX互換のTeXで ${ここに数式}$ で書く。" },
+					comment: { type: "string", description: "ステップへの短いコメント。数式は $x^2+1$ のように$で囲んだTeXで書く。" },
 				},
 			},
 		},
@@ -72,19 +73,19 @@ export const GRADING_OUTPUT_SCHEMA = {
 				additionalProperties: false,
 				required: ["location", "type", "explanation", "hint"],
 				properties: {
-					location: { type: "string", description: "誤りがある箇所の答案からの引用" },
+					location: { type: "string", description: "誤りがある箇所の答案からの引用。数式は $x^2+1$ のように$で囲んだTeXで書く。" },
 					type: {
 						type: "string",
 						enum: ["calculation", "logic", "misconception", "notation", "incomplete"],
 						description:
 							"誤りの種類。calculation=計算ミス logic=論理の飛躍や誤り misconception=概念の誤解 notation=記法の誤り incomplete=解答の不足",
 					},
-					explanation: { type: "string", description: "何がどう誤っているかの説明。数式はKaTeX互換のTeXで ${ここに数式}$ で書く。" },
-					hint: { type: "string", description: "答えを直接言わずに正しい方向へ導くヒント。数式はKaTeX互換のTeXで ${ここに数式}$ で書く。" },
+					explanation: { type: "string", description: "何がどう誤っているかの説明。数式は $x^2+1$ のように$で囲んだTeXで書く。" },
+					hint: { type: "string", description: "答えを直接言わずに正しい方向へ導くヒント。数式は $x^2+1$ のように$で囲んだTeXで書く。" },
 				},
 			},
 		},
-		overall_comment: { type: "string", description: "全体講評。良い点にも必ず触れる。数式はKaTeX互換のTeXで ${ここに数式}$ で書く。" },
-		next_recommendation: { type: "string", description: "次に取り組むべき内容の提案。数式はKaTeX互換のTeXで ${ここに数式}$ で書く。" },
+		overall_comment: { type: "string", description: "全体講評。良い点にも必ず触れる。数式は $x^2+1$ のように$で囲んだTeXで書く。" },
+		next_recommendation: { type: "string", description: "次に取り組むべき内容の提案。数式は $x^2+1$ のように$で囲んだTeXで書く。" },
 	},
 } as const;
