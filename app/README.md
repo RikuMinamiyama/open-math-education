@@ -8,6 +8,8 @@ AI添削を核にした数学IAの演習アプリ。設計は [docs/db_schema.md
 - API: Hono on Cloudflare Workers
 - DB: D1 + Drizzle ORM / 画像: R2 / 非同期添削: Queues
 - AI添削: Claude API（`ANTHROPIC_API_KEY` 未設定時はモック添削で動作）
+- 既定モデルは `claude-sonnet-5`（新規キーで Opus が 403 になることがあるため。権限があれば `GRADING_MODEL` を `claude-opus-4-8` に変更できる）
+- コード変更を本番に出すには `cd app && pnpm run deploy` が必要。`ANTHROPIC_API_KEY` シークレットは再設定不要
 - 認証: better-auth
 
 ## ローカル開発

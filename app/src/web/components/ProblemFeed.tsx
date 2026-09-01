@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRightIcon, PaperClipIcon, XMarkIcon } from '@heroicons/react/20/solid';
-import { CheckCircleIcon } from '@heroicons/react/24/solid';
+import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import { apiPost, apiPostForm, useFetch, type ActivityItem, type Me, type SelfCheckResult } from '../api';
+import { compressAnswerImage } from '../lib/compressAnswerImage';
 import { StatusBadge, VerdictBadge } from './badges';
 
 const MAX_IMAGES = 4;
@@ -57,6 +58,8 @@ function FeedItem({ item, isLast }: { item: ActivityItem; isLast: boolean }) {
 					<div className="relative flex size-6 flex-none items-center justify-center bg-stone-50">
 						{item.status === 'graded' ? (
 							<CheckCircleIcon aria-hidden="true" className="size-6 text-brand-600" />
+						) : item.status === 'failed' ? (
+							<ExclamationCircleIcon aria-hidden="true" className="size-6 text-rose-500" />
 						) : (
 							<div className="mt-3 size-1.5 rounded-full bg-stone-100 ring ring-stone-300" />
 						)}
@@ -71,15 +74,13 @@ function FeedItem({ item, isLast }: { item: ActivityItem; isLast: boolean }) {
 						{item.message && <p className="mt-1.5 text-sm/6 whitespace-pre-wrap text-stone-600">{item.message}</p>}
 						<div className="mt-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
 							{item.verdict ? <VerdictBadge verdict={item.verdict} /> : <StatusBadge status={item.status} />}
-							{item.status === 'graded' && (
-								<Link
-									to={`/submissions/${item.id}`}
-									className="inline-flex items-center gap-0.5 text-xs font-medium text-brand-700 hover:underline"
-								>
-									添削結果を確認する
-									<ChevronRightIcon aria-hidden="true" className="size-3.5" />
-								</Link>
-							)}
+							<Link
+								to={`/submissions/${item.id}`}
+								className="inline-flex items-center gap-0.5 text-xs font-medium text-brand-700 hover:underline"
+							>
+								{item.status === 'failed' ? '失敗の詳細を見る' : item.status === 'graded' ? '添削結果を確認する' : '進行状況を見る'}
+								<ChevronRightIcon aria-hidden="true" className="size-3.5" />
+							</Link>
 						</div>
 					</div>
 				</>
@@ -103,6 +104,12 @@ export function ProblemFeed({ slug, me, onSubmitted }: { slug: string; me: Me | 
 
 	const previews = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files]);
 	const remaining = me?.usage ? me.usage.limit - me.usage.used : null;
+
+	useEffect(() => {
+		return () => {
+			previews.forEach((url) => URL.revokeObjectURL(url));
+		};
+	}, [previews]);
 
 	// 添削完了までポーリングする
 	const pending = items.some(
@@ -128,8 +135,12 @@ export function ProblemFeed({ slug, me, onSubmitted }: { slug: string; me: Me | 
 		setSubmitting(true);
 		setError(null);
 		try {
+			const compressed: File[] = [];
+			for (const file of files) {
+				compressed.push(await compressAnswerImage(file));
+			}
 			const form = new FormData();
-			for (const file of files) form.append('images', file);
+			for (const file of compressed) form.append('images', file);
 			if (message.trim()) form.append('message', message.trim());
 			await apiPostForm<{ id: string }>(`/api/problems/${slug}/submissions`, form);
 			setMessage('');
@@ -254,7 +265,7 @@ export function ProblemFeed({ slug, me, onSubmitted }: { slug: string; me: Me | 
 									disabled={files.length === 0 || submitting || (remaining !== null && remaining <= 0)}
 									className="rounded-lg bg-brand-700 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-stone-300"
 								>
-									{submitting ? '送信中...' : '添削を依頼'}
+									{submitting ? '画像を準備しています...' : '添削を依頼'}
 								</button>
 							</div>
 							<input

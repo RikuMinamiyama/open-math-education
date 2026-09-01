@@ -267,6 +267,7 @@ export type ActivityItem =
 export interface SubmissionDetail {
 	id: string;
 	status: SubmissionStatus;
+	lastError?: string | null;
 	createdAt: string;
 	studentMessage: string | null;
 	problem: { slug: string; title: string; statementTex: string } | null;

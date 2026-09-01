@@ -15,7 +15,8 @@
 	"vars": {
 		// 無料個人の1日あたりの添削回数上限
 		"FREE_DAILY_GRADINGS": "3",
-		"GRADING_MODEL": "claude-opus-4-8",
+		// 新規APIキーでは Opus が 403 になることがある。権限があれば claude-opus-4-8 に変更できる
+		"GRADING_MODEL": "claude-sonnet-5",
 	},
 	"d1_databases": [
 		{

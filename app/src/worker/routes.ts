@@ -23,7 +23,7 @@ import { jstDay } from './lib/time';
 const TERMS_VERSION = '2026-07-06';
 
 const MAX_IMAGES = 4;
-const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_MESSAGE_LENGTH = 500;
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
@@ -395,7 +395,7 @@ app.post('/api/problems/:slug/submissions', async (c) => {
 			return c.json({ error: 'JPEG・PNG・WebP・GIF形式の画像のみアップロードできます' }, 400);
 		}
 		if (file.size > MAX_IMAGE_BYTES) {
-			return c.json({ error: '画像1枚のサイズは8MBまでです' }, 400);
+			return c.json({ error: '画像1枚のサイズは5MBまでです。大きな写真は自動で縮小してから送られます' }, 400);
 		}
 	}
 
@@ -676,6 +676,7 @@ app.get('/api/submissions/:id', async (c) => {
 		submission: {
 			id: submission.id,
 			status: submission.status,
+			lastError: submission.status === "failed" ? submission.lastError : null,
 			createdAt: submission.createdAt,
 			studentMessage: submission.studentMessage,
 			problem: problem ? { slug: problem.slug, title: problem.title, statementTex: problem.statementTex } : null,
