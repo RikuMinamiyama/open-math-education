@@ -676,6 +676,7 @@ app.get('/api/submissions/:id', async (c) => {
 		submission: {
 			id: submission.id,
 			status: submission.status,
+			lastError: submission.status === "failed" ? submission.lastError : null,
 			createdAt: submission.createdAt,
 			studentMessage: submission.studentMessage,
 			problem: problem ? { slug: problem.slug, title: problem.title, statementTex: problem.statementTex } : null,

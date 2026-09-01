@@ -15,6 +15,23 @@ const ERROR_TYPE_LABELS: Record<string, string> = {
 	incomplete: '解答の不足',
 };
 
+function describeGradingFailure(lastError: string | null | undefined): string {
+	const text = lastError?.toLowerCase() ?? '';
+	if (text.includes('401') || text.includes('authentication')) {
+		return 'Anthropic APIキーが無効です。Cloudflare のシークレット ANTHROPIC_API_KEY を確認してください';
+	}
+	if (text.includes('403') || text.includes('permission') || text.includes('do not have access')) {
+		return 'このAPIキーでは指定モデルを使えません。GRADING_MODEL を claude-sonnet-5 にするか、Anthropic の利用枠を確認してください';
+	}
+	if (text.includes('402') || text.includes('billing')) {
+		return 'Anthropic の請求設定を確認してください';
+	}
+	if (text.includes('429') || text.includes('rate_limit')) {
+		return 'APIの利用上限に達しています。しばらく待ってから再度アップロードしてください';
+	}
+	return '時間をおいてもう一度アップロードしてください';
+}
+
 export function SubmissionPage() {
 	const { id } = useParams();
 	const { data, error, loading, reload } = useFetch<{ submission: SubmissionDetail }>(id ? `/api/submissions/${id}` : null);
@@ -106,7 +123,8 @@ export function SubmissionPage() {
 
 			{submission.status === 'failed' && (
 				<div className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-800">
-					添削処理に失敗しました。時間をおいてもう一度アップロードしてください
+					<p className="font-medium">添削処理に失敗しました</p>
+					<p className="mt-1">{describeGradingFailure(submission.lastError)}</p>
 				</div>
 			)}
 

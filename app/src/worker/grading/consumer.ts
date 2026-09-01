@@ -8,6 +8,7 @@ import { GRADING_OUTPUT_SCHEMA, type GradingOutput } from "./feedback";
 import { buildGradingUserText, GRADING_SYSTEM_PROMPT, PROMPT_VERSION } from "./prompt";
 
 const MAX_ATTEMPTS = 3;
+const FALLBACK_MODEL = "claude-sonnet-5";
 
 export async function handleGradingBatch(batch: MessageBatch<GradingJob>, env: Env): Promise<void> {
 	for (const message of batch.messages) {
@@ -17,13 +18,14 @@ export async function handleGradingBatch(batch: MessageBatch<GradingJob>, env: E
 			await gradeSubmission(db, env, submissionId);
 			message.ack();
 		} catch (err) {
-			console.error(`grading failed submission=${submissionId} attempt=${message.attempts}`, err);
+			const detail = formatGradingError(err);
+			console.error(`grading failed submission=${submissionId} attempt=${message.attempts} ${detail}`);
 			const failedForGood = message.attempts >= MAX_ATTEMPTS;
 			await db
 				.update(submissions)
 				.set({
 					attemptCount: sql`${submissions.attemptCount} + 1`,
-					lastError: String(err).slice(0, 2000),
+					lastError: detail.slice(0, 2000),
 					...(failedForGood ? { status: "failed" as const } : {}),
 				})
 				.where(eq(submissions.id, submissionId));
@@ -77,15 +79,15 @@ async function gradeSubmission(db: Db, env: Env, submissionId: string): Promise<
 			type: "image",
 			source: {
 				type: "base64",
-				media_type: image.contentType as "image/jpeg" | "image/png" | "image/gif" | "image/webp",
+				media_type: toImageMediaType(image.contentType),
 				data,
 			},
 		});
 	}
 
-	const model = env.GRADING_MODEL || "claude-opus-4-8";
+	const model = env.GRADING_MODEL || FALLBACK_MODEL;
 	const { output, usedModel } = env.ANTHROPIC_API_KEY
-		? await callClaude(env.ANTHROPIC_API_KEY, model, imageBlocks, problem, submission.studentMessage)
+		? await callClaudeWithFallback(env.ANTHROPIC_API_KEY, model, imageBlocks, problem, submission.studentMessage)
 		: { output: mockGradingOutput(), usedModel: "mock" };
 
 	const now = new Date();
@@ -106,6 +108,24 @@ async function gradeSubmission(db: Db, env: Env, submissionId: string): Promise<
 		.where(eq(submissions.id, submissionId));
 }
 
+async function callClaudeWithFallback(
+	apiKey: string,
+	model: string,
+	imageBlocks: Anthropic.ImageBlockParam[],
+	problem: Parameters<typeof buildGradingUserText>[0],
+	studentMessage?: string | null,
+): Promise<{ output: GradingOutput; usedModel: string }> {
+	try {
+		return await callClaude(apiKey, model, imageBlocks, problem, studentMessage);
+	} catch (err) {
+		if (model !== FALLBACK_MODEL && isModelAccessError(err)) {
+			console.warn(`grading model ${model} unavailable, falling back to ${FALLBACK_MODEL}: ${formatGradingError(err)}`);
+			return await callClaude(apiKey, FALLBACK_MODEL, imageBlocks, problem, studentMessage);
+		}
+		throw err;
+	}
+}
+
 async function callClaude(
 	apiKey: string,
 	model: string,
@@ -116,7 +136,7 @@ async function callClaude(
 	const client = new Anthropic({ apiKey });
 	const response = await client.messages.create({
 		model,
-		max_tokens: 16000,
+		max_tokens: 32000,
 		thinking: { type: "adaptive" },
 		system: GRADING_SYSTEM_PROMPT,
 		messages: [
@@ -151,6 +171,40 @@ async function callClaude(
 		throw new Error(`empty grading response stop_reason=${response.stop_reason}`);
 	}
 	return { output: JSON.parse(text) as GradingOutput, usedModel: response.model };
+}
+
+function toImageMediaType(contentType: string): "image/jpeg" | "image/png" | "image/gif" | "image/webp" {
+	const normalized = contentType.toLowerCase().split(";")[0]?.trim() ?? "";
+	if (normalized === "image/png") return "image/png";
+	if (normalized === "image/gif") return "image/gif";
+	if (normalized === "image/webp") return "image/webp";
+	return "image/jpeg";
+}
+
+function getErrorStatus(err: unknown): number | undefined {
+	if (typeof err === "object" && err !== null && "status" in err) {
+		const status = (err as { status?: unknown }).status;
+		if (typeof status === "number") return status;
+	}
+	return undefined;
+}
+
+function formatGradingError(err: unknown): string {
+	if (typeof err === "object" && err !== null) {
+		const status = getErrorStatus(err);
+		const rec = err as { error?: { type?: string; message?: string }; message?: string };
+		const type = rec.error?.type;
+		const message = rec.error?.message || rec.message || String(err);
+		return [status != null ? `anthropic ${status}` : "anthropic error", type, message].filter(Boolean).join(": ");
+	}
+	return String(err);
+}
+
+function isModelAccessError(err: unknown): boolean {
+	const status = getErrorStatus(err);
+	if (status === 403 || status === 404) return true;
+	const text = formatGradingError(err).toLowerCase();
+	return text.includes("permission_error") || text.includes("you do not have access to model") || text.includes("not_found_error");
 }
 
 // APIキー未設定のローカル開発で使うモック
