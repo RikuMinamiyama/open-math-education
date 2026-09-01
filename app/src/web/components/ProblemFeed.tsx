@@ -177,9 +177,7 @@ export function ProblemFeed({ slug, me, onSubmitted }: { slug: string; me: Me | 
 				<>
 					<div ref={listRef} className="flex-1 overflow-y-auto px-4 py-4">
 						{items.length === 0 ? (
-							<p className="text-sm text-stone-500">
-								まだ記録がありません。ノートに解いた答案を撮影して添削を依頼するか、⚪︎△×で学習記録をつけましょう
-							</p>
+							<p className="text-sm text-stone-500">まだ記録がありません</p>
 						) : (
 							<ul role="list" className="space-y-6">
 								{items.map((item, idx) => (

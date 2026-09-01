@@ -235,7 +235,7 @@ function TexField({
 		<div className="text-sm">
 			<span className="font-medium">
 				{label}
-				<span className="ml-2 font-normal text-stone-400">数式は $...$ または $$...$$ で囲む</span>
+				<span className="ml-2 font-normal text-stone-400">数式は $...$ または $$...$$ で囲む 空行1つ = 小さな余白（重ねると広がる） 読点「、」は「，」で表示される</span>
 			</span>
 			<div className="mt-1 grid grid-cols-1 gap-3 lg:grid-cols-2">
 				<textarea

@@ -27,4 +27,6 @@ body {
 .katex-display {
 	overflow-x: auto;
 	overflow-y: hidden;
+	/* 既定の1emは本文との間が空きすぎる */
+	margin: 0.4em 0;
 }
