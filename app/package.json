@@ -3,9 +3,13 @@
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
+	"engines": {
+		"node": ">=22.15.0"
+	},
 	"scripts": {
-		"dev": "vite",
-		"build": "vite build",
+		"check-node": "node scripts/check-node.mjs",
+		"dev": "node scripts/check-node.mjs && vite",
+		"build": "node scripts/check-node.mjs && vite build",
 		"preview": "vite preview",
 		"deploy": "pnpm run build && wrangler deploy",
 		"typecheck": "tsc -p tsconfig.web.json --noEmit && tsc -p tsconfig.worker.json --noEmit",
