@@ -14,6 +14,8 @@ AI添削を核にした数学IAの演習アプリ。設計は [docs/db_schema.md
 
 ## ローカル開発
 
+Node.js 22.15 以上が必要です。`@cloudflare/vite-plugin` が `module.registerHooks` を使うため、22.14 以下では `vite build` が失敗します。
+
 ```bash
 pnpm install
 cp .dev.vars.example .dev.vars   # AUTH_SECRETを設定
@@ -53,6 +55,8 @@ pnpm wrangler d1 execute DB --local --command "UPDATE users SET role = 'admin' W
 3. `pnpm db:migrate` でローカルに適用
 
 ## デプロイ
+
+デプロイするマシンでも Node.js 22.15 以上と `wrangler login`（または `CLOUDFLARE_API_TOKEN`）が必要です。
 
 ```bash
 wrangler d1 create ome-db        # 発行されたIDを wrangler.jsonc に設定
