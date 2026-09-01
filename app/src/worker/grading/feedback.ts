@@ -39,7 +39,7 @@ export const GRADING_OUTPUT_SCHEMA = {
 			type: "string",
 			enum: ["correct", "partially_correct", "incorrect", "cannot_judge", "unreadable"],
 			description:
-				"答案全体の判定。読み取れない場合はunreadable、判定に確信が持てない場合はcannot_judgeを選ぶこと",
+				"答案全体の判定。読み取れない場合はunreadable、判定に確信が持てない場合はcannot_judgeを選ぶこと。",
 		},
 		confidence: {
 			type: "number",
@@ -47,7 +47,7 @@ export const GRADING_OUTPUT_SCHEMA = {
 		},
 		transcription: {
 			type: "string",
-			description: "読み取った答案の書き起こし。数式はKaTeX互換のTeXで $...$ に入れる",
+			description: "読み取った答案の書き起こし。数式はKaTeX互換のTeXで ${ここに数式}$ で書く。",
 		},
 		steps: {
 			type: "array",
@@ -57,16 +57,16 @@ export const GRADING_OUTPUT_SCHEMA = {
 				additionalProperties: false,
 				required: ["page", "summary", "ok", "comment"],
 				properties: {
-					page: { type: "integer", description: "何枚目の画像か。1始まり" },
-					summary: { type: "string", description: "ステップの要約" },
+					page: { type: "integer", description: "何枚目の画像か（1始まり）" },
+					summary: { type: "string", description: "ステップの要約。数式はKaTeX互換のTeXで ${ここに数式}$ で書く。" },
 					ok: { type: "boolean", description: "このステップが正しいか" },
-					comment: { type: "string", description: "ステップへの短いコメント" },
+					comment: { type: "string", description: "ステップへの短いコメント。数式はKaTeX互換のTeXで ${ここに数式}$ で書く。" },
 				},
 			},
 		},
 		errors: {
 			type: "array",
-			description: "見つかった誤り。正解ならば空配列",
+			description: "見つかった誤り。正解ならば空配列。",
 			items: {
 				type: "object",
 				additionalProperties: false,
@@ -79,12 +79,12 @@ export const GRADING_OUTPUT_SCHEMA = {
 						description:
 							"誤りの種類。calculation=計算ミス logic=論理の飛躍や誤り misconception=概念の誤解 notation=記法の誤り incomplete=解答の不足",
 					},
-					explanation: { type: "string", description: "何がどう誤っているかの説明" },
-					hint: { type: "string", description: "答えを直接言わずに正しい方向へ導くヒント" },
+					explanation: { type: "string", description: "何がどう誤っているかの説明。数式はKaTeX互換のTeXで ${ここに数式}$ で書く。" },
+					hint: { type: "string", description: "答えを直接言わずに正しい方向へ導くヒント。数式はKaTeX互換のTeXで ${ここに数式}$ で書く。" },
 				},
 			},
 		},
-		overall_comment: { type: "string", description: "全体講評。良い点にも必ず触れる" },
-		next_recommendation: { type: "string", description: "次に取り組むべき内容の提案" },
+		overall_comment: { type: "string", description: "全体講評。良い点にも必ず触れる。数式はKaTeX互換のTeXで ${ここに数式}$ で書く。" },
+		next_recommendation: { type: "string", description: "次に取り組むべき内容の提案。数式はKaTeX互換のTeXで ${ここに数式}$ で書く。" },
 	},
 } as const;
