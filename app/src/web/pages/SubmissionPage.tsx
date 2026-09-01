@@ -23,11 +23,20 @@ function describeGradingFailure(lastError: string | null | undefined): string {
 	if (text.includes('403') || text.includes('permission') || text.includes('do not have access')) {
 		return 'このAPIキーでは指定モデルを使えません。GRADING_MODEL を claude-sonnet-5 にするか、Anthropic の利用枠を確認してください';
 	}
-	if (text.includes('402') || text.includes('billing')) {
+	if (text.includes('402') || text.includes('billing') || text.includes('credit')) {
 		return 'Anthropic の請求設定を確認してください';
 	}
 	if (text.includes('429') || text.includes('rate_limit')) {
 		return 'APIの利用上限に達しています。しばらく待ってから再度アップロードしてください';
+	}
+	if (text.includes('529') || text.includes('overloaded')) {
+		return 'Anthropic 側が混み合っています。しばらく待ってから再度アップロードしてください';
+	}
+	if (text.includes('10mb') || text.includes('exceeds') || text.includes('request size')) {
+		return '答案画像が大きすぎます。もう少し離して撮影するか、枚数を減らしてください';
+	}
+	if (text.includes('400') || text.includes('invalid_request')) {
+		return '添削リクエストが API に拒否されました。画像形式を変えて再度アップロードしてください';
 	}
 	return '時間をおいてもう一度アップロードしてください';
 }
@@ -125,6 +134,12 @@ export function SubmissionPage() {
 				<div className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-800">
 					<p className="font-medium">添削処理に失敗しました</p>
 					<p className="mt-1">{describeGradingFailure(submission.lastError)}</p>
+					{submission.lastError && (
+						<details className="mt-3">
+							<summary className="cursor-pointer text-xs text-rose-700">技術的な詳細</summary>
+							<p className="mt-1 font-mono text-xs break-all text-rose-700">{submission.lastError}</p>
+						</details>
+					)}
 				</div>
 			)}
 

@@ -4,11 +4,21 @@ import { Buffer } from "node:buffer";
 import { getDb, type Db } from "../db/client";
 import { gradings, problems, submissionImages, submissions } from "../db/schema";
 import { uuidv7 } from "../lib/id";
+import {
+	formatGradingError,
+	isModelAccessError,
+	isRetryableError,
+	NonRetryableGradingError,
+} from "./errors";
 import { GRADING_OUTPUT_SCHEMA, type GradingOutput } from "./feedback";
 import { buildGradingUserText, GRADING_SYSTEM_PROMPT, PROMPT_VERSION } from "./prompt";
 
 const MAX_ATTEMPTS = 3;
 const FALLBACK_MODEL = "claude-sonnet-5";
+const FALLBACK_MODELS = [FALLBACK_MODEL, "claude-sonnet-4-6"];
+// Anthropic API は base64 後 10MB / 画像、リクエスト全体 32MB
+const MAX_IMAGE_BASE64_CHARS = 10 * 1024 * 1024;
+const MAX_REQUEST_BASE64_CHARS = 28 * 1024 * 1024;
 
 export async function handleGradingBatch(batch: MessageBatch<GradingJob>, env: Env): Promise<void> {
 	for (const message of batch.messages) {
@@ -20,7 +30,7 @@ export async function handleGradingBatch(batch: MessageBatch<GradingJob>, env: E
 		} catch (err) {
 			const detail = formatGradingError(err);
 			console.error(`grading failed submission=${submissionId} attempt=${message.attempts} ${detail}`);
-			const failedForGood = message.attempts >= MAX_ATTEMPTS;
+			const failedForGood = message.attempts >= MAX_ATTEMPTS || !isRetryableError(err);
 			await db
 				.update(submissions)
 				.set({
@@ -55,7 +65,7 @@ async function gradeSubmission(db: Db, env: Env, submissionId: string): Promise<
 		where: eq(problems.id, submission.problemId),
 	});
 	if (!problem) {
-		throw new Error(`problem not found: ${submission.problemId}`);
+		throw new NonRetryableGradingError(`problem not found: ${submission.problemId}`);
 	}
 
 	const images = await db.query.submissionImages.findMany({
@@ -63,18 +73,28 @@ async function gradeSubmission(db: Db, env: Env, submissionId: string): Promise<
 		orderBy: [asc(submissionImages.pageNo)],
 	});
 	if (images.length === 0) {
-		throw new Error("no images for submission");
+		throw new NonRetryableGradingError("no images for submission");
 	}
 
 	await db.update(submissions).set({ status: "grading" }).where(eq(submissions.id, submissionId));
 
 	const imageBlocks: Anthropic.ImageBlockParam[] = [];
+	let totalBase64 = 0;
 	for (const image of images) {
 		const object = await env.ANSWERS.get(image.r2Key);
 		if (!object) {
-			throw new Error(`answer image not found in R2: ${image.r2Key}`);
+			throw new NonRetryableGradingError(`answer image not found in R2: ${image.r2Key}`);
 		}
 		const data = Buffer.from(await object.arrayBuffer()).toString("base64");
+		if (data.length > MAX_IMAGE_BASE64_CHARS) {
+			throw new NonRetryableGradingError(
+				`image exceeds Anthropic 10MB base64 limit page=${image.pageNo} bytes=${data.length}`,
+			);
+		}
+		totalBase64 += data.length;
+		if (totalBase64 > MAX_REQUEST_BASE64_CHARS) {
+			throw new NonRetryableGradingError("answer images exceed Anthropic request size limit");
+		}
 		imageBlocks.push({
 			type: "image",
 			source: {
@@ -115,15 +135,30 @@ async function callClaudeWithFallback(
 	problem: Parameters<typeof buildGradingUserText>[0],
 	studentMessage?: string | null,
 ): Promise<{ output: GradingOutput; usedModel: string }> {
-	try {
-		return await callClaude(apiKey, model, imageBlocks, problem, studentMessage);
-	} catch (err) {
-		if (model !== FALLBACK_MODEL && isModelAccessError(err)) {
-			console.warn(`grading model ${model} unavailable, falling back to ${FALLBACK_MODEL}: ${formatGradingError(err)}`);
-			return await callClaude(apiKey, FALLBACK_MODEL, imageBlocks, problem, studentMessage);
+	const seen = new Set<string>();
+	const candidates = [model, ...FALLBACK_MODELS].filter((name) => {
+		if (seen.has(name)) return false;
+		seen.add(name);
+		return true;
+	});
+
+	let lastErr: unknown;
+	for (const [i, current] of candidates.entries()) {
+		try {
+			return await callClaude(apiKey, current, imageBlocks, problem, studentMessage);
+		} catch (err) {
+			lastErr = err;
+			const next = candidates[i + 1];
+			if (next && isModelAccessError(err)) {
+				console.warn(
+					`grading model ${current} unavailable, falling back to ${next}: ${formatGradingError(err)}`,
+				);
+				continue;
+			}
+			throw err;
 		}
-		throw err;
 	}
+	throw lastErr;
 }
 
 async function callClaude(
@@ -133,7 +168,11 @@ async function callClaude(
 	problem: Parameters<typeof buildGradingUserText>[0],
 	studentMessage?: string | null,
 ): Promise<{ output: GradingOutput; usedModel: string }> {
-	const client = new Anthropic({ apiKey });
+	const client = new Anthropic({
+		apiKey,
+		maxRetries: 1,
+		timeout: 8 * 60 * 1000,
+	});
 	const response = await client.messages.create({
 		model,
 		max_tokens: 32000,
@@ -146,9 +185,10 @@ async function callClaude(
 			},
 		],
 		output_config: {
+			effort: "medium",
 			format: {
 				type: "json_schema",
-				schema: GRADING_OUTPUT_SCHEMA,
+				schema: GRADING_OUTPUT_SCHEMA as unknown as { [key: string]: unknown },
 			},
 		},
 	});
@@ -179,32 +219,6 @@ function toImageMediaType(contentType: string): "image/jpeg" | "image/png" | "im
 	if (normalized === "image/gif") return "image/gif";
 	if (normalized === "image/webp") return "image/webp";
 	return "image/jpeg";
-}
-
-function getErrorStatus(err: unknown): number | undefined {
-	if (typeof err === "object" && err !== null && "status" in err) {
-		const status = (err as { status?: unknown }).status;
-		if (typeof status === "number") return status;
-	}
-	return undefined;
-}
-
-function formatGradingError(err: unknown): string {
-	if (typeof err === "object" && err !== null) {
-		const status = getErrorStatus(err);
-		const rec = err as { error?: { type?: string; message?: string }; message?: string };
-		const type = rec.error?.type;
-		const message = rec.error?.message || rec.message || String(err);
-		return [status != null ? `anthropic ${status}` : "anthropic error", type, message].filter(Boolean).join(": ");
-	}
-	return String(err);
-}
-
-function isModelAccessError(err: unknown): boolean {
-	const status = getErrorStatus(err);
-	if (status === 403 || status === 404) return true;
-	const text = formatGradingError(err).toLowerCase();
-	return text.includes("permission_error") || text.includes("you do not have access to model") || text.includes("not_found_error");
 }
 
 // APIキー未設定のローカル開発で使うモック
